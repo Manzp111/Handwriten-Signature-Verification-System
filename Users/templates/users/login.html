@@ -1,0 +1,51 @@
+{}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Neon Login</title>
+    {% load static %}
+
+    <link rel="stylesheet" href="{% static 'css/login.css' %}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+</head>
+<body>
+    <div class="container">
+        <div class="form-section  side-a">
+            <div class="form-box">
+                <h2>Login</h2>
+                <form id="loginForm">
+                    <div class="input-group">
+                        <i class="fas fa-user icon"></i>
+                        <input type="text" id="loginEmail" required />
+                        <label for="loginEmail">Email</label>
+                    </div>
+                    
+                    <div class="input-group">
+                        <i class="fas fa-lock icon"></i>
+                        <input type="password" id="loginPassword" required />
+                        <label for="loginPassword">Password</label>
+                    </div>
+                    
+                    <button type="submit" class="glow-button">Login</button>
+                    <p class="signup-link">
+                        Don't have an account? <a href="register.html">Sign Up</a>
+                    </p>
+                </form>
+            </div>
+        </div>
+
+        <div class="slide-panel side-b">
+            <h1 class="welcome-text">
+                
+                <pre>
+                    WELCOME
+                     BACK!
+
+                </pre>
+            </h1>
+        </div>
+    </div>
+</body>
+</html>

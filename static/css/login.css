@@ -1,0 +1,219 @@
+:root {
+    --neon-color: #00d8d8; 
+    --neon-glow: #00ffff;
+    --dark-bg: #0d1117;
+    --dark-form-bg: #161b22;
+    --border-radius: 12px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--dark-bg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    color: white;
+}
+
+/* --- Main Container & Outer Glow (Static Layout) --- */
+.container {
+    display: flex;
+    width: 850px;
+    height: 550px;
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--border-radius);
+    background-color: var(--dark-form-bg);
+    box-shadow: 0 0 40px var(--neon-color), inset 0 0 20px var(--neon-color);
+}
+
+
+.form-section {
+    /* Make it full width/height to use global coordinates */
+    width: 100%; 
+    height: 100%;
+    position: absolute; /* Needed for full coverage */
+    top: 0;
+    left: 0;
+    display: flex;
+    /* justify-content: center; */
+    align-items: center;
+    padding: 30px;
+    background: linear-gradient(135deg, #0d1117, #161b22);
+    z-index: 11; 
+    
+    /* NEW COMPLEX CLIP-PATH (The Left Side) */
+    clip-path: polygon(
+        0% 0%,       /* Top Left */
+        50% 0%,       /* Top Right - Start of Diagonal */
+        60% 50%,      /* Middle Right (Shifted to 60%) */
+        70% 100%,     /* Bottom Right (Shifted to 70%) */
+        0% 100%       /* Bottom Left */
+    );
+}
+
+/* --- Slide Panel (Welcome Panel) --- */
+/* Update the .slide-panel styling */
+.slide-panel {
+    width: 100%; /* Make it full width/height */
+    height: 100%;
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: flex;
+    justify-content: flex-end; /* Align welcome text to the diagonal */
+    align-items: center;
+    text-align: right;
+    background: linear-gradient(to top right, var(--neon-color), #004d4d);
+    z-index: 10;
+    
+    /* NEW COMPLEX CLIP-PATH (The Right Side - Inverse) */
+    clip-path: polygon(
+        50% 0%,       /* Top Left - Start of Diagonal (Matches Form 50%) */
+        100% 0%,      /* Top Right */
+        100% 100%,    /* Bottom Right */
+        30% 100%,     /* Bottom Left (Matches Form 70%) */
+        40% 50%       /* Middle Left (Matches Form 60%) */
+    );
+}
+
+
+.welcome-text {
+    /* Adjust padding to fit the new angled shape */
+    padding: 0 40px 0 100px;
+}
+/* --- Welcome Text --- */
+.welcome-text {
+    font-size: 2.5rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-shadow: 0 0 10px white, 0 0 20px var(--neon-color);
+    padding: 0 40px;
+    position: relative;
+    z-index: 12;
+}
+
+/* --- Form Styling (General) --- */
+.form-box {
+    width: 100%;
+    max-width: 320px;
+    text-align: center;
+}
+
+h2 {
+    font-size: 2rem;
+    margin-bottom: 25px;
+    text-shadow: 0 0 5px var(--neon-color);
+}
+
+/* --- FIXED: Input Group for Floating Label --- */
+.input-group {
+    position: relative;
+    width: 100%;
+    height: 50px;
+    margin-bottom: 30px; /* Increased margin for the floating label */
+    border-bottom: 2px solid #ffffff33; /* Subtler bottom border */
+    transition: border-bottom 0.3s ease;
+}
+
+.input-group:focus-within {
+    border-bottom: 2px solid var(--neon-color); /* Neon bottom border on focus */
+    box-shadow: 0 5px 15px -8px var(--neon-color); /* Subtle glow on focus */
+}
+
+/* --- FIXED: Input Field Styles --- */
+input[type="text"],
+input[type="password"] {
+    width: 100%;
+    /* Adjusted padding */
+    padding: 12px 40px 12px 15px; 
+    /* Crucial: Must be transparent to see the background */
+    background: transparent; 
+    color: white; /* Ensure text is visible */
+    font-size: 16px;
+    border: none;
+    outline: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    z-index: 2; /* Above the label */
+}
+
+/* --- FIXED: Label Styles --- */
+.input-group label {
+    position: absolute;
+    top: 50%;
+    left: 15px;
+    transform: translateY(-50%);
+    font-size: 1em;
+    color: #ffffff99; /* Greyed out label */
+    font-weight: 500;
+    pointer-events: none;
+    transition: 0.3s ease; /* For smooth floating */
+    z-index: 3; /* Above the input field */
+}
+
+/* --- Floating Label Activation (Corrected 'top' value) --- */
+.input-group input:focus~label,
+.input-group input:valid~label {
+    top: -20px; /* Moves label above the border */
+    font-size: 0.85em;
+    color: var(--neon-color); /* Neon color when active */
+}
+
+
+.input-group .icon {
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    transform: translateY(-50%);
+    color: var(--neon-color);
+    font-size: 1.1rem;
+    pointer-events: none;
+    text-shadow: 0 0 5px var(--neon-color);
+    z-index: 4; /* Ensures icon is on top */
+}
+
+.glow-button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    background: var(--neon-color);
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 0 0 15px var(--neon-color), 0 0 35px var(--neon-color);
+    transition: all 0.3s ease;
+}
+
+.glow-button:hover {
+    background: var(--neon-glow);
+    box-shadow: 0 0 20px var(--neon-glow), 0 0 50px var(--neon-glow);
+}
+
+.signup-link {
+    margin-top: 20px;
+    font-size: 0.9rem;
+}
+
+.signup-link a {
+    color: var(--neon-color);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s;
+}
+
+.signup-link a:hover {
+    color: var(--neon-glow);
+}
