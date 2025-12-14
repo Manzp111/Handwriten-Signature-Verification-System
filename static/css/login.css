@@ -125,10 +125,12 @@ h2 {
 .input-group:focus-within {
     border-bottom: 2px solid var(--neon-color); /* Neon bottom border on focus */
     box-shadow: 0 5px 15px -8px var(--neon-color); /* Subtle glow on focus */
+    background-color:linear-gradient(135deg, #0d1117, #161b22);
 }
 
+
 /* --- FIXED: Input Field Styles --- */
-input[type="text"],
+input[type="email"],
 input[type="password"] {
     width: 100%;
     /* Adjusted padding */

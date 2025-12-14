@@ -1,0 +1,324 @@
+/* --- CSS Variables --- */
+:root {
+    --neon-color: #00d8d8;
+    --neon-glow: #00ffff;
+    --dark-bg: #0d1117;
+    --dark-form-bg: #161b22;
+    --border-radius: 12px;
+    /* Define the split points for the COMPLEX REGISTRATION VIEW */
+    --reg-split-start: 50%; /* Top */
+    --reg-split-mid: 40%;  /* Middle */
+    --reg-split-end: 30%;  /* Bottom */
+
+    /* Define the split points for the DEFAULT LOGIN VIEW (retaining old values) */
+    --login-split-start: 50%;
+    --login-split-mid: 60%;
+    --login-split-end: 70%;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--dark-bg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-family: 'Poppins', sans-serif;
+    color: white;
+}
+
+/* --- Main Container & Outer Glow --- */
+.container {
+    display: flex;
+    width: 850px;
+    height: 550px;
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--border-radius);
+    background-color: var(--dark-form-bg);
+    box-shadow: 0 0 40px var(--neon-color), inset 0 0 20px var(--neon-color);
+}
+
+/* --- Base Form Section (Full width, positioned left by default) --- */
+.form-section {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    justify-content: flex-start; /* Default alignment is left */
+    align-items: center;
+    padding: 30px;
+    background: linear-gradient(135deg, #0d1117, #161b22);
+    z-index: 11;
+}
+
+/* 🟢 LOGIN VIEW (Form on Left) - Uses previous complex path */
+.form-section.login-section {
+    justify-content: flex-start;
+    clip-path: polygon(
+        0% 0%,
+        var(--login-split-start) 0%,
+        var(--login-split-mid) 50%,
+        var(--login-split-end) 100%,
+        0% 100%
+    );
+}
+.form-section.login-section .form-box {
+    margin-left: 50px;
+}
+
+/* 🔴 REGISTER VIEW (Form on Right) - NEW COMPLEX PATH */
+.form-section.register-section {
+    left: auto;
+    right: 0;
+    /* Aligns form content to the center of the right half */
+    justify-content: flex-end; 
+    
+    /* COMPLEX CLIP-PATH: The dark form section is on the RIGHT. 
+       The cut defines its LEFT border. Points: Top-Left, Top-Right, Bottom-Right, Bottom-Left, Mid-Left. */
+    clip-path: polygon(
+        var(--reg-split-start) 0%,   /* Top Left (Start of Diagonal) */
+        100% 0%,                     /* Top Right */
+        100% 100%,                   /* Bottom Right */
+        var(--reg-split-end) 100%,   /* Bottom Left (End of Diagonal) */
+        var(--reg-split-mid) 50%     /* Mid Left (Middle point) */
+    );
+}
+
+/* Align form content (e.g., center it in the visible 50% on the right) */
+.form-section.register-section .form-box {
+    /* Push content away from the container's right edge */
+    margin-right: 50px;
+}
+
+
+/* --- Slide Panel Base Styles (Full width, positioned right by default) --- */
+.slide-panel {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: flex;
+    justify-content: flex-end; /* Default alignment is right */
+    align-items: center;
+    text-align: right;
+    background: linear-gradient(to top right, var(--neon-color), #004d4d);
+    z-index: 10;
+}
+
+/* 🟢 LOGIN PANEL (on Right) - Inverse path */
+.slide-panel.login-panel {
+    justify-content: flex-end;
+    clip-path: polygon(
+        var(--login-split-start) 0%,
+        100% 0%,
+        100% 100%,
+        var(--login-split-end) 100%,
+        var(--login-split-mid) 50%
+    );
+}
+.slide-panel.login-panel::before {
+    /* Apply glow for login panel */
+    clip-path: polygon(var(--login-split-start) 0%, 100% 0%, 100% 100%, var(--login-split-end) 100%, var(--login-split-mid) 50%);
+    border: 2px solid var(--neon-color);
+    box-shadow: 0 0 15px var(--neon-color), 0 0 30px var(--neon-color);
+    content: '';
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 11;
+}
+
+
+/* 🔴 REGISTER PANEL (on Left) - NEW INVERSE COMPLEX PATH + GLOW */
+.slide-panel.register-panel {
+    right: auto;
+    left: 0;
+    justify-content: flex-start; /* Aligns welcome text to the left side */
+    text-align: left;
+    
+    /* INVERSE COMPLEX CLIP-PATH: The neon panel is on the LEFT. 
+       The cut defines its RIGHT border. Points: Top-Right, Bottom-Right, Bottom-Left, Top-Left, Mid-Right. */
+    clip-path: polygon(
+        0% 0%,                     /* Top Left */
+        var(--reg-split-start) 0%,   /* Top Right (Start of Diagonal) */
+        var(--reg-split-mid) 50%,    /* Mid Right (Middle point) */
+        var(--reg-split-end) 100%,   /* Bottom Right (End of Diagonal) */
+        0% 100%                      /* Bottom Left */
+    );
+}
+
+.slide-panel.register-panel::before {
+    /* Apply the INVERSE clip path for the border glow */
+    clip-path: polygon(0% 0%, var(--reg-split-start) 0%, var(--reg-split-mid) 50%, var(--reg-split-end) 100%, 0% 100%);
+    border: 2px solid var(--neon-color);
+    box-shadow: 0 0 15px var(--neon-color), 0 0 30px var(--neon-color);
+    content: '';
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 11;
+}
+
+.slide-panel.register-panel .welcome-text {
+    /* Adjust padding to fit the new angled shape on the left */
+    padding: 0 0 0 40px;
+}
+
+
+/* --- Welcome Text --- */
+.welcome-text {
+    font-size: 2.5rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-shadow: 0 0 10px white, 0 0 20px var(--neon-color);
+    position: relative;
+    z-index: 12;
+}
+
+
+/* --- Form Styling (General) --- */
+.form-box {
+    width: 100%;
+    max-width: 320px;
+    text-align: center;
+    /* Removed default margin-left, now controlled by specific register/login classes */
+    margin-left: 0; 
+}
+
+h2 {
+    font-size: 2rem;
+    margin-bottom: 25px;
+    text-shadow: 0 0 5px var(--neon-color);
+}
+
+/* --- FIXED: Input Group for Floating Label --- */
+.input-group {
+    position: relative;
+    width: 100%;
+    height: 50px;
+    margin-bottom: 30px;
+    border-bottom: 2px solid #ffffff33;
+    transition: border-bottom 0.3s ease;
+}
+/* ... (Rest of input, label, button, and link styles remain identical) ... */
+.input-group:focus-within {
+    border-bottom: 2px solid var(--neon-color);
+    box-shadow: 0 5px 15px -8px var(--neon-color);
+}
+
+input[type="text"], input[type="password"], input[type="email"] {
+    width: 100%;
+    padding: 12px 40px 12px 15px;
+    background: transparent;
+    color: white;
+    font-size: 16px;
+    border: none;
+    outline: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    z-index: 2;
+}
+
+.input-group label {
+    position: absolute;
+    top: 50%;
+    left: 15px;
+    transform: translateY(-50%);
+    font-size: 1em;
+    color: #ffffff99;
+    font-weight: 500;
+    pointer-events: none;
+    transition: 0.3s ease;
+    z-index: 3;
+}
+
+.input-group input:focus~label,
+.input-group input:valid~label {
+    top: -20px;
+    font-size: 0.85em;
+    color: var(--neon-color);
+}
+
+.input-group .icon {
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    transform: translateY(-50%);
+    color: var(--neon-color);
+    font-size: 1.1rem;
+    pointer-events: none;
+    text-shadow: 0 0 5px var(--neon-color);
+    z-index: 4;
+}
+
+.glow-button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    background: var(--neon-color);
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 0 0 15px var(--neon-color), 0 0 35px var(--neon-color);
+    transition: all 0.3s ease;
+}
+
+.glow-button:hover {
+    background: var(--neon-glow);
+    box-shadow: 0 0 20px var(--neon-glow), 0 0 50px var(--neon-glow);
+}
+
+.signup-link {
+    margin-top: 20px;
+    font-size: 0.9rem;
+}
+
+.signup-link a {
+    color: var(--neon-color);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s;
+}
+
+.signup-link a:hover {
+    color: var(--neon-glow);
+}
+/* ============================= */
+/* Django Form Error Styles */
+/* ============================= */
+
+.error {
+    margin-top: 6px;
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: #ff4d4d; /* neon red */
+    text-shadow: 0 0 6px rgba(255, 77, 77, 0.7);
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Highlight input with error */
+.input-group input.error-input {
+    border-color: #ff4d4d !important;
+    box-shadow: 0 0 8px rgba(255, 77, 77, 0.8);
+}
+
+/* Fade animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
