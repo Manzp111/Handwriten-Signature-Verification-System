@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard</title>
+
+    {% load static %}
+   
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}" />
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+</head>
+<body class="dashboard-body">
+
+<div class="dashboard-wrapper">
+    <aside class="sidebar-panel">
+        <h2 class="logo-text">NeonSync</h2>
+        <nav class="nav-links">
+            <a href="#" class="nav-link active">
+                <i class="fas fa-home"></i> Home
+            </a>
+            <a href="#" class="nav-link">
+                <i class="fas fa-chart-line"></i> Analytics
+            </a>
+            <a href="#" class="nav-link">
+                <i class="fas fa-envelope"></i> Messages
+                <span class="badge">3</span>
+            </a>
+            <a href="#" class="nav-link">
+                <i class="fas fa-cog"></i> Settings
+            </a>
+            <a href="{% url 'logout' %}" class="nav-link logout-link">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </nav>
+        <div class="user-profile">
+            <div class="profile-avatar">U</div>
+            <p>Username</p>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="dashboard-header">
+            <h1>Dashboard Overview</h1>
+            <div class="header-actions">
+                <button class="glow-button small-button">
+                    <i class="fas fa-plus"></i> New Project
+                </button>
+            </div>
+        </header>
+
+        <section class="metrics-grid">
+            <div class="metric-card">
+                <i class="fas fa-users metric-icon"></i>
+                <p class="metric-value">1,245</p>
+                <p class="metric-label">Total Users</p>
+            </div>
+            <div class="metric-card">
+                <i class="fas fa-box metric-icon"></i>
+                <p class="metric-value">32</p>
+                <p class="metric-label">Active Projects</p>
+            </div>
+            <div class="metric-card">
+                <i class="fas fa-dollar-sign metric-icon"></i>
+                <p class="metric-value">$8.5K</p>
+                <p class="metric-label">Monthly Revenue</p>
+            </div>
+            <div class="metric-card">
+                <i class="fas fa-clock metric-icon"></i>
+                <p class="metric-value">4.8s</p>
+                <p class="metric-label">Avg. Load Time</p>
+            </div>
+        </section>
+
+        <section class="data-panel">
+            <h2>Recent Activity</h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Activity</th>
+                        <th>User</th>
+                        <th>Time</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Created new report</td>
+                        <td>Alice J.</td>
+                        <td>5 min ago</td>
+                        <td class="status-success">Completed</td>
+                    </tr>
+                    <tr>
+                        <td>Updated configuration</td>
+                        <td>Bob K.</td>
+                        <td>1 hour ago</td>
+                        <td class="status-pending">Pending</td>
+                    </tr>
+                    <tr>
+                        <td>Deployed feature X</td>
+                        <td>Charlie L.</td>
+                        <td>Yesterday</td>
+                        <td class="status-error">Failed</td>
+                    </tr>
+                    <tr>
+                        <td>Reviewed pull request</td>
+                        <td>Alice J.</td>
+                        <td>2 days ago</td>
+                        <td class="status-success">Completed</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+</div>
+
+</body>
+</html>

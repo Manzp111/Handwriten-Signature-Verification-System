@@ -1,67 +1,52 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.views import View
-from .forms import SignatureUploadForm
+from django.contrib.auth.decorators import login_required
+from .forms import SignatureDocumentForm
 from .models import Signature
-from .utils import preprocess_image, SiameseCNN, verify_signature
-import torch
+from machine_pipeline.ml_pipeline import SiameseSignatureML
+from PIL import Image
+import io
 
-# ----------------------------
-# Instantiate ML model
-# ----------------------------
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = SiameseCNN().to(device)
-model.eval()
+def dashbord(request):
+    return render('base.html')
 
-# ----------------------------
-# Upload Signature
-# ----------------------------
-class SignatureUploadView(LoginRequiredMixin, View):
-    def get(self, request):
-        form = SignatureUploadForm()
-        return render(request, 'upload_signature.html', {'form': form})
+# Load trained model once
+ml_model = SiameseSignatureML(model_path='machine_pipeline/signature_model.pth')
 
-    def post(self, request):
-        form = SignatureUploadForm(request.POST, request.FILES)
+@login_required
+def upload_signature_document(request):
+    user = request.user
+
+    # Prevent uploading more than 3 reference signatures
+    if Signature.objects.filter(user=user).count() >= 3:
+        return render(request, 'signatures/already_uploaded.html')
+
+    if request.method == "POST":
+        form = SignatureDocumentForm(request.POST, request.FILES)
         if form.is_valid():
-            signature = form.save(commit=False)
-            signature.user = request.user
+            document = request.FILES['document']
 
-            # Extract features
-            input_tensor = preprocess_image(request.FILES['image']).to(device).flatten()
-            signature.features = input_tensor.tolist()
-            signature.save()
-            
-            return render(request, 'upload_signature.html', {
-                'form': SignatureUploadForm(),
-                'message': 'Signature uploaded successfully!'
-            })
-        return render(request, 'upload_signature.html', {'form': form})
+            # Load uploaded image (assumes a scanned paper or image containing 3 signatures)
+            image = Image.open(document).convert("L")  # grayscale
 
+            # Split into 3 signatures (horizontal split example)
+            width, height = image.size
+            sig_height = height // 3
+            for i in range(3):
+                sig_img = image.crop((0, i*sig_height, width, (i+1)*sig_height))
 
-# ----------------------------
-# Verify Signature
-# ----------------------------
-class SignatureVerifyView(LoginRequiredMixin, View):
-    def get(self, request):
-        return render(request, 'verify_signature.html')
+                # Save each signature in memory
+                sig_obj = Signature(user=user)
+                buffer = io.BytesIO()
+                sig_img.save(buffer, format="PNG")
+                sig_obj.image.save(f"{user.id}_sig_{i+1}.png", buffer, save=False)
 
-    def post(self, request):
-        file = request.FILES.get('signature')
-        if not file:
-            return render(request, 'verify_signature.html', {'error': 'No file provided'})
-        
-        result = verify_signature(request.user, file, model=model, device=device)
-        return render(request, 'verify_signature.html', {'result': result})
+                # Extract embedding using trained model
+                embedding = ml_model.extract_embedding(sig_obj.image.path)
+                sig_obj.processed_features = embedding.tolist()
+                sig_obj.save()
 
+            return redirect('upload_signature_document')
+    else:
+        form = SignatureDocumentForm()
 
-# ----------------------------
-# Staff: List all Signatures
-# ----------------------------
-class SignatureListView(LoginRequiredMixin, UserPassesTestMixin, View):
-    def test_func(self):
-        return self.request.user.is_staff
-
-    def get(self, request):
-        signatures = Signature.objects.all()
-        return render(request, 'signature_list.html', {'signatures': signatures})
+    return render(request, 'signatures/upload_document.html', {'form': form})
