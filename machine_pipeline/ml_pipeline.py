@@ -40,7 +40,7 @@ class SiameseSignatureML:
             x = self.fc2(x)
             return F.normalize(x, p=2, dim=1)
 
-    def __init__(self, model_path="machine_pipeline/signature_model.pth", device=None):
+    def __init__(self, model_path="v2/signature_model.pth", device=None):
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
         self.model = self.CNNEncoder().to(self.device)
         self.model.load_state_dict(torch.load(model_path, map_location=self.device))

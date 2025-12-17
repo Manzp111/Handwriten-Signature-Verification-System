@@ -1,76 +1,84 @@
 import os
 import random
+from collections import defaultdict
 from PIL import Image
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 
 # ======================================================
 # CONFIGURATION
 # ======================================================
-
-# Only allow real image files (prevents Thumbs.db crash)
 VALID_EXTENSIONS = (".png", ".jpg", ".jpeg", ".bmp", ".tiff")
-
-# Training parameters
 BATCH_SIZE = 8
 EPOCHS = 10
 LEARNING_RATE = 1e-3
 EMBEDDING_SIZE = 128
-
-# Image size (must stay consistent everywhere)
 IMG_HEIGHT = 155
 IMG_WIDTH = 220
-
+MARGIN = 1.0
+CHECKPOINT_PATH = "checkpoint.pth"
+MODEL_PATH = "signature_model.pth"
 
 # ======================================================
-# DATASET: Generates signature pairs
+# DATASET
 # ======================================================
 
-class SignaturePairsDataset(Dataset):
+class SignatureDataset(Dataset):
     """
-    Siamese Dataset:
-    - Positive pair  -> genuine vs genuine (label = 1)
-    - Negative pair  -> genuine vs forged  (label = 0)
+    Generates Siamese pairs with:
+    - Positive: Genuine-Genuine (same writer)
+    - Negative: Genuine-Forged + Genuine-Genuine (different writer)
     """
-
     def __init__(self, genuine_dir, forged_dir, transform=None):
         self.transform = transform
 
-        # Load only valid image files (ignores Thumbs.db)
-        self.genuine_images = [
-            os.path.join(genuine_dir, f)
-            for f in os.listdir(genuine_dir)
-            if f.lower().endswith(VALID_EXTENSIONS)
-        ]
+        self.genuine_by_writer = defaultdict(list)
+        self.forged_by_writer = defaultdict(list)
 
-        self.forged_images = [
-            os.path.join(forged_dir, f)
-            for f in os.listdir(forged_dir)
-            if f.lower().endswith(VALID_EXTENSIONS)
-        ]
+        # Parse genuine images
+        for f in os.listdir(genuine_dir):
+            if f.lower().endswith(VALID_EXTENSIONS):
+                writer = f.split("_")[0]
+                self.genuine_by_writer[writer].append(os.path.join(genuine_dir, f))
 
-        print(f"[INFO] Genuine images: {len(self.genuine_images)}")
-        print(f"[INFO] Forged images : {len(self.forged_images)}")
+        # Parse forged images
+        for f in os.listdir(forged_dir):
+            if f.lower().endswith(VALID_EXTENSIONS):
+                writer = f.split("_")[1]  # forgeries_7_1.png -> writer 7
+                self.forged_by_writer[writer].append(os.path.join(forged_dir, f))
 
-        # Build positive pairs (genuine-genuine)
-        self.pos_pairs = [
-            (self.genuine_images[i], self.genuine_images[j], 1)
-            for i in range(len(self.genuine_images))
-            for j in range(i + 1, len(self.genuine_images))
-        ]
+        self.all_writers = list(self.genuine_by_writer.keys())
+        self.pairs = []
 
-        # Build negative pairs (genuine-forged)
-        self.neg_pairs = [
-            (g, random.choice(self.forged_images), 0)
-            for g in self.genuine_images
-        ]
+        # Build pairs
+        for writer in self.all_writers:
+            # Positive pairs (same writer)
+            images = self.genuine_by_writer[writer]
+            for i in range(len(images)):
+                for j in range(i+1, len(images)):
+                    self.pairs.append((images[i], images[j], 1))
 
-        # Combine & shuffle
-        self.pairs = self.pos_pairs + self.neg_pairs
+            # Impostor negative pairs (different writers)
+            other_writers = [w for w in self.all_writers if w != writer]
+            for other_writer in other_writers:
+                img1 = random.choice(images)
+                img2 = random.choice(self.genuine_by_writer[other_writer])
+                self.pairs.append((img1, img2, 0))
+
+            # Genuine vs Forged
+            for img in images:
+                if writer in self.forged_by_writer:
+                    forged_img = random.choice(self.forged_by_writer[writer])
+                    self.pairs.append((img, forged_img, 0))
+
         random.shuffle(self.pairs)
 
     def __len__(self):
@@ -78,49 +86,36 @@ class SignaturePairsDataset(Dataset):
 
     def __getitem__(self, idx):
         img1_path, img2_path, label = self.pairs[idx]
-
-        # Load images as grayscale
         img1 = Image.open(img1_path).convert("L")
         img2 = Image.open(img2_path).convert("L")
 
-        # Apply transforms
         if self.transform:
             img1 = self.transform(img1)
             img2 = self.transform(img2)
 
         return img1, img2, torch.tensor(label, dtype=torch.float32)
 
-
 # ======================================================
-# SIAMESE CNN ENCODER
+# SIAMESE CNN
 # ======================================================
 
 class SiameseCNN(nn.Module):
-    """
-    CNN that converts a signature image into a feature embedding
-    """
-
     def __init__(self, embedding_size=EMBEDDING_SIZE):
         super().__init__()
-
-        self.conv1 = nn.Conv2d(1, 32, kernel_size=3, padding=1)
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
-        self.pool = nn.MaxPool2d(2, 2)
-
-        # Dynamically calculate FC input size (FIXES SHAPE ERROR)
+        self.conv1 = nn.Conv2d(1, 32, 3, padding=1)
+        self.conv2 = nn.Conv2d(32, 64, 3, padding=1)
+        self.pool = nn.MaxPool2d(2,2)
         self._to_linear = None
         self._get_conv_output()
-
         self.fc1 = nn.Linear(self._to_linear, 256)
         self.fc2 = nn.Linear(256, embedding_size)
 
     def _get_conv_output(self):
-        """Automatically computes flattened CNN output size"""
         with torch.no_grad():
-            x = torch.zeros(1, 1, IMG_HEIGHT, IMG_WIDTH)
+            x = torch.zeros(1,1,IMG_HEIGHT,IMG_WIDTH)
             x = self.pool(F.relu(self.conv1(x)))
             x = self.pool(F.relu(self.conv2(x)))
-            self._to_linear = x.view(1, -1).size(1)
+            self._to_linear = x.view(1,-1).size(1)
 
     def forward_one(self, x):
         x = self.pool(F.relu(self.conv1(x)))
@@ -128,77 +123,67 @@ class SiameseCNN(nn.Module):
         x = x.view(x.size(0), -1)
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
-
-        # Normalize embedding (important for similarity)
         return F.normalize(x, p=2, dim=1)
 
     def forward(self, x1, x2):
         return self.forward_one(x1), self.forward_one(x2)
-
 
 # ======================================================
 # CONTRASTIVE LOSS
 # ======================================================
 
 class ContrastiveLoss(nn.Module):
-    """
-    Loss for Siamese Networks
-    """
-
-    def __init__(self, margin=1.0):
+    def __init__(self, margin=MARGIN):
         super().__init__()
         self.margin = margin
 
     def forward(self, out1, out2, label):
         distance = F.pairwise_distance(out1, out2)
-        loss = (
-                label * distance.pow(2) +
-                (1 - label) * torch.clamp(self.margin - distance, min=0.0).pow(2)
-        )
+        loss = label*distance.pow(2) + (1-label)*torch.clamp(self.margin-distance, min=0.0).pow(2)
         return loss.mean()
 
-
 # ======================================================
-# TRAINING SCRIPT
+# TRAINING
 # ======================================================
 
-def main():
-    # Base directory (training/)
+def train_model():
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
     genuine_dir = os.path.join(BASE_DIR, "datasets", "full_org")
     forged_dir = os.path.join(BASE_DIR, "datasets", "full_forg")
 
-    # Image preprocessing
     transform = transforms.Compose([
         transforms.Resize((IMG_HEIGHT, IMG_WIDTH)),
         transforms.ToTensor()
     ])
 
-    # Dataset & loader
-    dataset = SignaturePairsDataset(genuine_dir, forged_dir, transform)
+    dataset = SignatureDataset(genuine_dir, forged_dir, transform)
     loader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
 
-    # Device
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"[INFO] Using device: {device}")
 
-    # Model, loss, optimizer
     model = SiameseCNN().to(device)
     criterion = ContrastiveLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
+    # Resume from checkpoint if exists
+    start_epoch = 0
+    if os.path.exists(CHECKPOINT_PATH):
+        checkpoint = torch.load(CHECKPOINT_PATH, map_location=device)
+        model.load_state_dict(checkpoint['model_state'])
+        optimizer.load_state_dict(checkpoint['optimizer_state'])
+        start_epoch = checkpoint['epoch'] + 1
+        print(f"[INFO] Resuming training from epoch {start_epoch}")
+
     # Training loop
-    for epoch in range(EPOCHS):
+    for epoch in range(start_epoch, EPOCHS):
         model.train()
         total_loss = 0
+        all_labels = []
+        all_preds = []
 
         for img1, img2, labels in loader:
-            img1, img2, labels = (
-                img1.to(device),
-                img2.to(device),
-                labels.to(device)
-            )
+            img1, img2, labels = img1.to(device), img2.to(device), labels.to(device)
 
             optimizer.zero_grad()
             out1, out2 = model(img1, img2)
@@ -208,18 +193,43 @@ def main():
 
             total_loss += loss.item()
 
+            # Collect predictions for metrics
+            dist = F.pairwise_distance(out1, out2)
+            pred = (dist < 0.5).float()
+            all_preds.extend(pred.cpu().numpy())
+            all_labels.extend(labels.cpu().numpy())
+
         avg_loss = total_loss / len(loader)
-        print(f"Epoch [{epoch + 1}/{EPOCHS}] - Loss: {avg_loss:.4f}")
+        acc = accuracy_score(all_labels, all_preds)
+        print(f"Epoch [{epoch+1}/{EPOCHS}] - Loss: {avg_loss:.4f} - Accuracy: {acc:.4f}")
 
-    # Save trained model
-    model_path = os.path.join(BASE_DIR, "signature_model.pth")
-    torch.save(model.state_dict(), model_path)
-    print(f"[SUCCESS] Model saved at: {model_path}")
+        # Save checkpoint
+        torch.save({
+            'epoch': epoch,
+            'model_state': model.state_dict(),
+            'optimizer_state': optimizer.state_dict()
+        }, CHECKPOINT_PATH)
 
+    # Save final model
+    torch.save(model.state_dict(), MODEL_PATH)
+    print(f"[SUCCESS] Model saved at: {MODEL_PATH}")
+
+    # Confusion Matrix
+    cm = confusion_matrix(all_labels, all_preds)
+    print("Confusion Matrix:\n", cm)
+    print("Classification Report:\n", classification_report(all_labels, all_preds))
+
+    # Optional: Plot confusion matrix
+    plt.figure(figsize=(6,5))
+    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues")
+    plt.xlabel("Predicted")
+    plt.ylabel("Actual")
+    plt.title("Confusion Matrix")
+    plt.show()
 
 # ======================================================
 # ENTRY POINT
 # ======================================================
 
 if __name__ == "__main__":
-    main()
+    train_model()
