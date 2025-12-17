@@ -1,22 +1,79 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Upload Signature</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 flex items-center justify-center h-screen">
-    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-        <h1 class="text-2xl font-bold mb-6 text-center">Upload Your Signature</h1>
-        <form method="POST" enctype="multipart/form-data" class="space-y-4">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit" class="w-full bg-purple-500 text-white py-2 rounded-lg hover:bg-purple-600 transition">Upload</button>
-        </form>
+{% extends 'base/base.html' %}
 
-        {% if message %}
-            <p class="text-green-500 mt-4 text-center">{{ message }}</p>
-        {% endif %}
+{% block title %}Register Master Signatures | NeonSync{% endblock %}
+
+{% block extra_css %}
+<style>
+    .upload-container {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .upload-box {
+        background: #161625;
+        border: 1px solid rgba(168, 85, 247, 0.2);
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+    }
+    .upload-box:hover {
+        border-color: #a855f7;
+        background: rgba(168, 85, 247, 0.05);
+    }
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="upload-container">
+    <div class="mb-8 text-center">
+        <h1 class="text-3xl font-bold text-white mb-2">Master Identity Registration</h1>
+        <p class="text-gray-400">Please upload 3 separate images. Each should contain <b>one clear signature</b> on a plain background.</p>
     </div>
-</body>
-</html>
+
+    <form method="POST" enctype="multipart/form-data" class="space-y-4">
+        {% csrf_token %}
+        
+        {% for i in "123" %}
+        <div class="upload-box flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <div class="bg-purple-500/10 p-3 rounded-lg text-purple-500">
+                    <i class="fas fa-file-signature text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-white font-semibold">Master Sample #{{ i }}</h3>
+                    <span id="file-name-{{ i }}" class="text-xs text-gray-500">No file selected</span>
+                </div>
+            </div>
+            
+            <label class="cursor-pointer bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold py-2 px-4 rounded-lg transition">
+                SELECT IMAGE
+                <input type="file" name="doc{{ i }}" class="hidden signature-input" data-id="{{ i }}" required accept="image/*">
+            </label>
+        </div>
+        {% endfor %}
+
+        <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-purple-500/20 transition mt-6">
+            <i class="fas fa-microchip mr-2"></i> GENERATE AI IDENTITY
+        </button>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.querySelectorAll('.signature-input').forEach(input => {
+        input.addEventListener('change', function() {
+            const id = this.getAttribute('data-id');
+            const fileName = this.files[0] ? this.files[0].name : "No file selected";
+            const displaySpan = document.getElementById(`file-name-${id}`);
+            
+            displaySpan.textContent = fileName;
+            if(this.files[0]) {
+                displaySpan.classList.add('text-purple-400', 'font-medium');
+                displaySpan.classList.remove('text-gray-500');
+            }
+        });
+    });
+</script>
+{% endblock %}

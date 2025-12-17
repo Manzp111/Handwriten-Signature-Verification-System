@@ -1,66 +1,86 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torchvision import transforms
-from PIL import Image
+from torchvision import transforms, models
+from PIL import Image, ImageOps
 import numpy as np
 
+# ======================================================
+# 1. IMAGE PREPROCESSING
+# ======================================================
+class SignatureProcessor:
+    def __call__(self, img):
+        img = ImageOps.grayscale(img)
+        img = ImageOps.autocontrast(img)
+        img = img.point(lambda p: 255 if p > 128 else 0)
+        return img.convert("RGB")
+
+# ======================================================
+# 2. FIXED MODEL ARCHITECTURE
+# ======================================================
+class SiameseCNN(nn.Module):
+    def __init__(self, embedding_size=128):
+        super().__init__()
+        self.backbone = models.resnet18(weights=None)
+        
+        # Based on your error log:
+        # fc.0: Linear(512, 512)
+        # fc.1: BatchNorm1d(512)
+        # fc.3: Linear(512, 128)
+        self.backbone.fc = nn.Sequential(
+            nn.Linear(512, 512),      # Matches your size mismatch error
+            nn.BatchNorm1d(512),     # Matches backbone.fc.1.weight/bias keys
+            nn.ReLU(),
+            nn.Linear(512, embedding_size) # Matches backbone.fc.3.weight keys
+        )
+
+    def forward_one(self, x):
+        x = self.backbone(x)
+        return F.normalize(x, p=2, dim=1)
+
+# ======================================================
+# 3. DJANGO WRAPPER CLASS
+# ======================================================
 class SiameseSignatureML:
-    """
-    ML pipeline class for signature verification.
-    - Loads trained Siamese CNN weights
-    - Extracts embeddings from signature images
-    - Optional: compare embeddings
-    """
-
-    class CNNEncoder(nn.Module):
-        def __init__(self, embedding_size=128):
-            super().__init__()
-            self.conv1 = nn.Conv2d(1, 32, 3, padding=1)
-            self.conv2 = nn.Conv2d(32, 64, 3, padding=1)
-            self.pool = nn.MaxPool2d(2, 2)
-
-            # Dynamically compute flattened size
-            dummy_input = torch.zeros(1, 1, 155, 220)
-            dummy_output = self._forward_conv(dummy_input)
-            self.flattened_size = dummy_output.view(1, -1).size(1)
-
-            self.fc1 = nn.Linear(self.flattened_size, 256)
-            self.fc2 = nn.Linear(256, embedding_size)
-
-        def _forward_conv(self, x):
-            x = F.relu(self.conv1(x))
-            x = self.pool(F.relu(self.conv2(x)))
-            return x
-
-        def forward(self, x):
-            x = self._forward_conv(x)
-            x = x.view(x.size(0), -1)
-            x = F.relu(self.fc1(x))
-            x = self.fc2(x)
-            return F.normalize(x, p=2, dim=1)
-
-    def __init__(self, model_path="v2/signature_model.pth", device=None):
-        self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
-        self.model = self.CNNEncoder().to(self.device)
-        self.model.load_state_dict(torch.load(model_path, map_location=self.device))
-        self.model.eval()
+    def __init__(self, model_path):
+        self.device = torch.device("cpu")
+        self.model = SiameseCNN()
+        
+        try:
+            # Load weights from your .pth file
+            state_dict = torch.load(model_path, map_location=self.device)
+            self.model.load_state_dict(state_dict)
+            
+            # CRITICAL: This fixes the "Expected more than 1 value per channel" error
+            # It tells BatchNorm to use the saved average instead of trying to calculate a new one
+            self.model.eval() 
+            
+            print(f"✅ Success: Model architecture synced and set to evaluation mode.")
+        except Exception as e:
+            print(f"❌ Error loading model: {e}")
 
         self.transform = transforms.Compose([
-            transforms.Grayscale(1),
-            transforms.Resize((155, 220)),
-            transforms.ToTensor()
+            SignatureProcessor(),
+            transforms.Resize((224, 224)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], 
+                                 std=[0.229, 0.224, 0.225])
         ])
 
-    def extract_embedding(self, image_path):
-        img = Image.open(image_path).convert("L")
+    def extract_embedding(self, image_input):
+        if isinstance(image_input, str):
+            img = Image.open(image_input)
+        else:
+            img = Image.open(image_input).convert("RGB")
+
         img_tensor = self.transform(img).unsqueeze(0).to(self.device)
+
+        # Ensure no gradients are tracked for better performance
         with torch.no_grad():
-            embedding = self.model(img_tensor)
-        return embedding.cpu().numpy()[0]
+            embedding = self.model.forward_one(img_tensor)
+        
+        return embedding.squeeze().numpy()
 
     @staticmethod
-    def compare_embeddings(emb1, emb2):
-        emb1 = emb1 / np.linalg.norm(emb1)
-        emb2 = emb2 / np.linalg.norm(emb2)
-        return np.dot(emb1, emb2)
+    def calculate_distance(embedding1, embedding2):
+        return np.linalg.norm(np.array(embedding1) - np.array(embedding2))

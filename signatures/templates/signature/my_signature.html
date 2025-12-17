@@ -1,0 +1,34 @@
+{% extends 'base/base.html' %}
+
+{% block main %}
+<div class="status-banner" style="background: #161625; padding: 25px; border-radius: 15px; border-left: 4px solid #a855f7; display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+    <div>
+        <h2 style="color: #fff; margin: 0;">Master Signatures</h2>
+        <p style="color: #94a3b8; margin: 5px 0 0 0;">These samples define your AI identity profile.</p>
+    </div>
+    <a href="{% url 'upload_reference_signatures' %}" style="background: #a855f7; color: #fff; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+        <i class="fas fa-sync"></i> Re-Register
+    </a>
+</div>
+
+{% if references %}
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+        {% for ref in references %}
+        <div style="background: #161625; border-radius: 15px; padding: 20px; border: 1px solid rgba(255,255,255,0.05);">
+            <div style="background: #fff; height: 150px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; overflow: hidden; border: 2px solid #333;">
+                {% if ref.image %}
+                    <img src="{{ ref.image.url }}" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.parentElement.innerHTML='<span style=\'color:red\'>Image Not Found in Media Folder</span>'">
+                {% else %}
+                    <p style="color: #000;">No Image Data</p>
+                {% endif %}
+            </div>
+            <div style="display: flex; justify-content: space-between; color: #94a3b8; font-size: 0.8rem;">
+                <span>SAMPLE ID: #{{ ref.id }}</span>
+                <span>{{ ref.created_at|date:"M d, Y" }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    {% endif %}
+{% endblock %}

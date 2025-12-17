@@ -3,119 +3,144 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard</title>
+    <title>{% block title %}NeonSync Dashboard{% endblock %}</title>
 
     {% load static %}
-   
-    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}" />
-    <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    
+    <style>
+        /* --- RESET & LAYOUT --- */
+        * { margin: 0; padding: 0; box-box: border-box; }
+        body { font-family: 'Inter', sans-serif; background-color: #0f0f1a; color: #fff; }
+
+        .dashboard-wrapper {
+            display: flex; /* CRITICAL: Enables side-by-side layout */
+            min-height: 100vh;
+            width: 100%;
+        }
+
+        /* --- SIDEBAR STYLE --- */
+        .sidebar-panel {
+            width: 260px;
+            min-width: 260px;
+            background-color: #161625; /* Deep Navy */
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            padding: 24px;
+            z-index: 100;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #a855f7; /* Purple Neon */
+            margin-bottom: 2rem;
+            letter-spacing: -1px;
+        }
+
+        .nav-links { flex-grow: 1; }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            color: #94a3b8;
+            text-decoration: none;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link i { margin-right: 12px; width: 20px; font-size: 1.1rem; }
+
+        .nav-link:hover {
+            background: rgba(168, 85, 247, 0.1);
+            color: #fff;
+        }
+
+        .nav-link.active {
+            background: #a855f7;
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4);
+        }
+
+        .logout-link:hover { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+
+        /* --- USER PROFILE SECTION --- */
+        .user-profile {
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .profile-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #a855f7, #6366f1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        /* --- MAIN CONTENT STYLE --- */
+        .main-content {
+            flex-grow: 1;
+            padding: 40px;
+            background-color: #0f0f1a;
+            overflow-y: auto;
+        }
+
+        {% block extra_css %}{% endblock %}
+    </style>
 </head>
 <body class="dashboard-body">
 
 <div class="dashboard-wrapper">
     <aside class="sidebar-panel">
-        <h2 class="logo-text">NeonSync</h2>
+        <h2 class="logo-text"><i class="fas fa-bolt"></i> NeonSync</h2>
+        
         <nav class="nav-links">
-            <a href="#" class="nav-link active">
+            <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                 <i class="fas fa-home"></i> Home
             </a>
-            <a href="#" class="nav-link">
-                <i class="fas fa-chart-line"></i> Analytics
+            <a href="{% url 'verify_signature' %}" class="nav-link {% if request.resolver_match.url_name == 'verify_signature_view' %}active{% endif %}">
+                <i class="fas fa-file-signature"></i> Verify Signature
             </a>
-            <a href="#" class="nav-link">
-                <i class="fas fa-envelope"></i> Messages
-                <span class="badge">3</span>
+            <a href="{% url 'my_signatures' %}" class="nav-link {% if request.resolver_match.url_name == 'upload_reference_signatures' %}active{% endif %}">
+                <i class="fas fa-pen-nib"></i> MY_signature
             </a>
             <a href="#" class="nav-link">
                 <i class="fas fa-cog"></i> Settings
             </a>
-            <a href="{% url 'logout' %}" class="nav-link logout-link">
+            
+            <a href="{% url 'logout' %}" class="nav-link logout-link" style="margin-top: 20px;">
                 <i class="fas fa-sign-out-alt"></i> Logout
             </a>
         </nav>
+        
         <div class="user-profile">
-            <div class="profile-avatar">U</div>
-            <p>Username</p>
+            <div class="profile-avatar">{{ request.user.username|slice:":1"|upper }}</div>
+            <div>
+                <p style="font-size: 0.9rem; font-weight: 600;">{{ request.user.username }}</p>
+                <p style="font-size: 0.7rem; color: #64748b;">Pro Account</p>
+            </div>
         </div>
     </aside>
 
     <main class="main-content">
-        <header class="dashboard-header">
-            <h1>Dashboard Overview</h1>
-            <div class="header-actions">
-                <button class="glow-button small-button">
-                    <i class="fas fa-plus"></i> New Project
-                </button>
-            </div>
-        </header>
-
-        <section class="metrics-grid">
-            <div class="metric-card">
-                <i class="fas fa-users metric-icon"></i>
-                <p class="metric-value">1,245</p>
-                <p class="metric-label">Total Users</p>
-            </div>
-            <div class="metric-card">
-                <i class="fas fa-box metric-icon"></i>
-                <p class="metric-value">32</p>
-                <p class="metric-label">Active Projects</p>
-            </div>
-            <div class="metric-card">
-                <i class="fas fa-dollar-sign metric-icon"></i>
-                <p class="metric-value">$8.5K</p>
-                <p class="metric-label">Monthly Revenue</p>
-            </div>
-            <div class="metric-card">
-                <i class="fas fa-clock metric-icon"></i>
-                <p class="metric-value">4.8s</p>
-                <p class="metric-label">Avg. Load Time</p>
-            </div>
-        </section>
-
-        <section class="data-panel">
-            <h2>Recent Activity</h2>
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Activity</th>
-                        <th>User</th>
-                        <th>Time</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Created new report</td>
-                        <td>Alice J.</td>
-                        <td>5 min ago</td>
-                        <td class="status-success">Completed</td>
-                    </tr>
-                    <tr>
-                        <td>Updated configuration</td>
-                        <td>Bob K.</td>
-                        <td>1 hour ago</td>
-                        <td class="status-pending">Pending</td>
-                    </tr>
-                    <tr>
-                        <td>Deployed feature X</td>
-                        <td>Charlie L.</td>
-                        <td>Yesterday</td>
-                        <td class="status-error">Failed</td>
-                    </tr>
-                    <tr>
-                        <td>Reviewed pull request</td>
-                        <td>Alice J.</td>
-                        <td>2 days ago</td>
-                        <td class="status-success">Completed</td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
+        {% block main %}
+        {% endblock %}
     </main>
 </div>
 
+{% block extra_js %}{% endblock %}
 </body>
 </html>

@@ -1,13 +1,20 @@
-# signatures/forms.py
-
 from django import forms
+from .models import Signature
 
-class SignatureDocumentForm(forms.Form):
-    """
-    Form for uploading a single document that contains 3 genuine signatures.
-    """
-    document = forms.ImageField(
-        label="Upload Signature Document",
-        help_text="Upload a scanned image containing 3 signatures (PNG, JPG, JPEG).",
-        widget=forms.ClearableFileInput(attrs={'accept': 'image/*'})
+
+class SignatureRegistrationForm(forms.Form):
+    doc1 = forms.ImageField(
+        label="Master Sample 1",
+        widget=forms.FileInput(attrs={'class': 'hidden signature-input', 'data-id': '1'})
     )
+    doc2 = forms.ImageField(
+        label="Master Sample 2",
+        widget=forms.FileInput(attrs={'class': 'hidden signature-input', 'data-id': '2'})
+    )
+    doc3 = forms.ImageField(
+        label="Master Sample 3",
+        widget=forms.FileInput(attrs={'class': 'hidden signature-input', 'data-id': '3'})
+    )
+
+class VerifySignatureForm(forms.Form):    
+    signature_to_verify = forms.ImageField(label="Upload Signature for Verification")

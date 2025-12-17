@@ -8,17 +8,7 @@ import uuid
 # ----------------------------
 class UserManager(BaseUserManager):
 
-    def generate_account_number(self):
-        """
-        Generates a unique incremental 12-digit account number starting with 70
-        Example: 700000000001, 700000000002, ...
-        """
-        last_user = self.model.objects.order_by('id').last()
-        if not last_user:
-            new_number = 700000000001
-        else:
-            new_number = int(last_user.account_number) + 1
-        return str(new_number)
+   
 
     def create_user(self, email, password=None, full_name=None):
         if not email:
@@ -64,7 +54,7 @@ class User(AbstractBaseUser):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     full_name = models.CharField(max_length=200)
     email = models.EmailField(unique=True)
-    account_number = models.CharField(max_length=12, unique=True)
+    # account_number = models.CharField(max_length=12, unique=True)
 
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)

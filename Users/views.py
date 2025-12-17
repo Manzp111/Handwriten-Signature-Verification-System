@@ -5,25 +5,25 @@ from django.contrib.auth.hashers import check_password
 from .models import User
 
 
-# ----------------------------
 # User Registration
-# ----------------------------
+
 def register(request):
     if request.method == "POST":
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
-            form.save()  # password + auto fields handled in form & manager
+            form.save()
             return redirect('login')
     else:
         form = UserRegistrationForm()
-
     return render(request, "users/register.html", {"form": form})
 
 
-# ----------------------------
-# User Login
-# ----------------------------
+# User Login (Corrected Logic)
+
 def user_login(request):
+    # Initialize form once at the top to prevent UnboundLocalError
+    form = UserLoginForm()
+
     if request.method == "POST":
         form = UserLoginForm(request.POST)
         if form.is_valid():
@@ -46,17 +46,22 @@ def user_login(request):
             user = authenticate(request, email=email, password=password)
             if user is not None:
                 login(request, user)
-                return redirect("dashboard")
+                
+                # Check if the user has any registered signatures
+                # This uses the related_name="signatures" from your Signature model
+                if not user.signatures.exists():
+                    return redirect("upload_reference_signatures")
+                else:
+                    return redirect("dashboard")
+            else:
+                form.add_error(None, "Authentication failed. Please contact support.")
 
-    else:
-        form = UserLoginForm()
-
+    # This return handles initial GET requests AND POST requests that failed validation
     return render(request, "users/login.html", {"form": form})
 
 
-# ----------------------------
 # User Logout
-# ----------------------------
+
 def user_logout(request):
     logout(request)
     return redirect("login")
