@@ -5,9 +5,7 @@ from torchvision import transforms, models
 from PIL import Image, ImageOps
 import numpy as np
 
-# ======================================================
 # 1. IMAGE PREPROCESSING
-# ======================================================
 class SignatureProcessor:
     def __call__(self, img):
         img = ImageOps.grayscale(img)
@@ -15,9 +13,7 @@ class SignatureProcessor:
         img = img.point(lambda p: 255 if p > 128 else 0)
         return img.convert("RGB")
 
-# ======================================================
 # 2. FIXED MODEL ARCHITECTURE
-# ======================================================
 class SiameseCNN(nn.Module):
     def __init__(self, embedding_size=128):
         super().__init__()
@@ -38,9 +34,7 @@ class SiameseCNN(nn.Module):
         x = self.backbone(x)
         return F.normalize(x, p=2, dim=1)
 
-# ======================================================
 # 3. DJANGO WRAPPER CLASS
-# ======================================================
 class SiameseSignatureML:
     def __init__(self, model_path):
         self.device = torch.device("cpu")
@@ -55,9 +49,9 @@ class SiameseSignatureML:
             # It tells BatchNorm to use the saved average instead of trying to calculate a new one
             self.model.eval() 
             
-            print(f"✅ Success: Model architecture synced and set to evaluation mode.")
+            print(f"Success: Model architecture synced and set to evaluation mode.")
         except Exception as e:
-            print(f"❌ Error loading model: {e}")
+            print(f"Error loading model: {e}")
 
         self.transform = transforms.Compose([
             SignatureProcessor(),

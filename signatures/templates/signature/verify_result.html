@@ -37,7 +37,7 @@
                     <div class="bg-gray-50 border border-gray-200 p-5 rounded-xl text-center">
                         <p class="text-sm font-bold text-gray-400 uppercase tracking-tighter mb-1">AI Distance</p>
                         <p class="text-4xl font-black text-gray-800">{{ distance }}</p>
-                        <p class="text-xs text-gray-400 mt-2">Similarity Threshold: 0.50</p>
+                        <p class="text-xs text-gray-400 mt-2">Similarity Threshold: 0.85</p>
                     </div>
                 </div>
 
@@ -56,18 +56,18 @@
                 </div>
 
                 <div class="flex flex-col sm:flex-row gap-4">
-                    <a href="{% url 'verify_signature' %}" class="flex-1 bg-yellow-500 text-white text-center py-4 rounded-xl font-bold hover:bg-yellow-600 transition-all shadow-lg hover:shadow-xl">
+                    <a href="{% url 'verify_signature' %}" class="flex-1 bg-[#a855f7] text-white text-center py-4 rounded-xl font-bold hover:bg-yellow-600 transition-all shadow-lg hover:shadow-xl">
                         Verify New Signature
                     </a>
-                    <a href="{% url 'dashboard' %}" class="flex-1 bg-gray-800 text-white text-center py-4 rounded-xl font-bold hover:bg-black transition-all shadow-lg">
+                    <a href="{% url 'dashboard' %}" class="flex-1 bg-gray-400 text-white text-center py-4 rounded-xl font-bold hover:bg-black transition-all shadow-lg">
                         Go to Dashboard
                     </a>
                 </div>
             </div>
 
             <div class="bg-gray-50 px-8 py-4 border-t border-gray-100 flex justify-between items-center">
-                <span class="text-xs font-mono text-gray-400">UUID: {{ request.user.uuid }}</span>
-                <span class="text-xs font-bold text-purple-500 uppercase">Siamese V2 Engine</span>
+                <!-- <span class="text-xs font-mono text-gray-400">UUID: {{ request.user.uuid }}</span> -->
+                <!-- <span class="text-xs font-bold text-purple-500 uppercase">Siamese V2 Engine</span> -->
             </div>
         </div>
         

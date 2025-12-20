@@ -1,79 +1,189 @@
 {% extends 'base/base.html' %}
 
-{% block title %}Register Master Signatures | NeonSync{% endblock %}
+{% block title %}Identity Enrollment | SignaSure{% endblock %}
 
 {% block extra_css %}
 <style>
-    .upload-container {
-        max-width: 700px;
-        margin: 0 auto;
-        padding: 20px;
+    :root {
+        --bg-main: #0a0a0c;
+        --card-bg: #111114;
+        --border-color: #232328;
+        --accent-primary: #8b5cf6; /* Modern Violet */
+        --text-muted: #71717a;
     }
-    .upload-box {
-        background: #161625;
-        border: 1px solid rgba(168, 85, 247, 0.2);
-        border-radius: 15px;
-        padding: 20px;
-        margin-bottom: 15px;
-        transition: all 0.3s ease;
+
+    body { background-color: var(--bg-main); font-family: 'Inter', sans-serif; }
+
+    .enrollment-container {
+        max-width: 640px;
+        margin: 80px auto;
+        padding: 0 20px;
     }
-    .upload-box:hover {
-        border-color: #a855f7;
-        background: rgba(168, 85, 247, 0.05);
+
+    .header-group { margin-bottom: 48px; }
+    .header-group h1 { letter-spacing: -0.02em; }
+
+    /* The Row Styling */
+    .upload-row {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .upload-row:hover { border-color: #3f3f46; background: #16161a; }
+
+    /* Active/Completed State */
+    .upload-row.completed {
+        border-color: rgba(139, 92, 246, 0.3);
+        background: rgba(139, 92, 246, 0.02);
+    }
+
+    .icon-box {
+        width: 44px;
+        height: 44px;
+        background: #1c1c21;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-muted);
+        transition: 0.3s;
+    }
+
+    .completed .icon-box { background: var(--accent-primary); color: white; box-shadow: 0 0 15px rgba(139, 92, 246, 0.3); }
+
+    /* Clean Secondary Button */
+    .btn-secondary {
+        font-size: 12px;
+        font-weight: 600;
+        padding: 8px 16px;
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+        color: #e4e4e7;
+        background: transparent;
+        transition: 0.2s;
+        cursor: pointer;
+    }
+
+    .btn-secondary:hover { background: #27272a; border-color: #52525b; }
+
+    /* Primary Submit */
+    .btn-primary-main {
+        width: 100%;
+        background: #fff;
+        color: #000;
+        padding: 14px;
+        border-radius: 8px;
+        font-weight: 600;
+        margin-top: 32px;
+        transition: 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .btn-primary-main:hover { background: #e4e4e7; transform: translateY(-1px); }
+
+    /* Simple subtle loading bar */
+    .processing-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(10, 10, 12, 0.8);
+        backdrop-filter: blur(4px);
+        z-index: 50;
+        align-items: center;
+        justify-content: center;
     }
 </style>
 {% endblock %}
 
 {% block main %}
-<div class="upload-container">
-    <div class="mb-8 text-center">
-        <h1 class="text-3xl font-bold text-white mb-2">Master Identity Registration</h1>
-        <p class="text-gray-400">Please upload 3 separate images. Each should contain <b>one clear signature</b> on a plain background.</p>
+<div class="processing-overlay" id="loader">
+    <div class="text-center">
+        <div class="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin mx-auto mb-4"></div>
+        <p class="text-white text-sm font-medium">Securing Identity Samples...................................</p>
+    </div>
+</div>
+
+<div class="enrollment-container">
+    <div class="header-group">
+        <h1 class="text-3xl font-bold text-white mb-3">Register Signature </h1>
+        <p class="text-zinc-500 text-sm leading-relaxed">
+            Register three independent samples to your secure vault. These images are used to generate your non-reversible neural signature key.
+        </p>
     </div>
 
-    <form method="POST" enctype="multipart/form-data" class="space-y-4">
+    <form method="POST" enctype="multipart/form-data" id="enrollForm">
         {% csrf_token %}
         
         {% for i in "123" %}
-        <div class="upload-box flex items-center justify-between">
-            <div class="flex items-center space-x-4">
-                <div class="bg-purple-500/10 p-3 rounded-lg text-purple-500">
-                    <i class="fas fa-file-signature text-xl"></i>
+        <div class="upload-row" id="row-{{ i }}">
+            <div class="flex items-center gap-4">
+                <div class="icon-box" id="icon-box-{{ i }}">
+                    <i class="fas fa-fingerprint"></i>
                 </div>
                 <div>
-                    <h3 class="text-white font-semibold">Master Sample #{{ i }}</h3>
-                    <span id="file-name-{{ i }}" class="text-xs text-gray-500">No file selected</span>
+                    <h4 class="text-zinc-200 text-sm font-medium">Reference Sample {{ i }}</h4>
+                    <p class="text-[11px] text-zinc-600 font-mono uppercase tracking-wider" id="status-{{ i }}">Pending Upload</p>
                 </div>
             </div>
-            
-            <label class="cursor-pointer bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold py-2 px-4 rounded-lg transition">
-                SELECT IMAGE
-                <input type="file" name="doc{{ i }}" class="hidden signature-input" data-id="{{ i }}" required accept="image/*">
+
+            <label class="btn-secondary">
+                Upload
+                <input type="file" name="doc{{ i }}" class="hidden sig-input" data-id="{{ i }}" required accept="image/*">
             </label>
         </div>
         {% endfor %}
 
-        <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-purple-500/20 transition mt-6">
-            <i class="fas fa-microchip mr-2"></i> GENERATE AI IDENTITY
+        <button type="submit" class="btn-primary-main">
+            Register Signature
+            <i class="fas fa-arrow-right text-[10px]"></i>
         </button>
     </form>
+
+    <div class="mt-12 p-5 border border-zinc-800/50 rounded-xl bg-zinc-900/20">
+        <div class="flex gap-4">
+            <i class="fas fa-shield-alt text-zinc-600 mt-1"></i>
+            <div>
+                <p class="text-xs text-zinc-400 font-medium">Security Advisory</p>
+                <p class="text-[11px] text-zinc-500 mt-1 italic">
+                    For best results, use high-contrast ink on a solid background. Avoid shadows and textured paper.
+                </p>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    document.querySelectorAll('.signature-input').forEach(input => {
+    document.querySelectorAll('.sig-input').forEach(input => {
         input.addEventListener('change', function() {
             const id = this.getAttribute('data-id');
-            const fileName = this.files[0] ? this.files[0].name : "No file selected";
-            const displaySpan = document.getElementById(`file-name-${id}`);
-            
-            displaySpan.textContent = fileName;
-            if(this.files[0]) {
-                displaySpan.classList.add('text-purple-400', 'font-medium');
-                displaySpan.classList.remove('text-gray-500');
+            const row = document.getElementById(`row-${id}`);
+            const status = document.getElementById(`status-${id}`);
+            const iconBox = document.getElementById(`icon-box-${id}`);
+
+            if (this.files[0]) {
+                const fileName = this.files[0].name;
+                row.classList.add('completed');
+                status.textContent = fileName;
+                status.classList.replace('text-zinc-600', 'text-violet-400');
+                iconBox.innerHTML = '<i class="fas fa-check"></i>';
             }
         });
+    });
+
+    document.getElementById('enrollForm').addEventListener('submit', () => {
+        document.getElementById('loader').style.display = 'flex';
     });
 </script>
 {% endblock %}

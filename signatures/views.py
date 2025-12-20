@@ -107,7 +107,7 @@ def verify_signature_view(request):
         min_dist = min(distances)
         
         # THRESHOLD SETTING: 0.5 (Balanced), 0.4 (Strict Security)
-        is_genuine = min_dist < 0.5 
+        is_genuine = min_dist < 0.15 
         
         # Calculate a friendly score for the UI
         confidence = round((1 - min_dist) * 100, 2)

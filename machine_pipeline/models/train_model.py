@@ -18,7 +18,7 @@ from collections import defaultdict
 
 
 # 1. SYSTEM CONFIGURATION
-# the model is trained with help of google colab
+# the model is trained wit help of google colab
 DRIVE_PATH = "/content/drive/MyDrive/Machine Learning" 
 DRIVE_GEN_DIR = f"{DRIVE_PATH}/datasets/full_org"
 DRIVE_FORG_DIR = f"{DRIVE_PATH}/datasets/full_forg"
@@ -43,10 +43,10 @@ SECURITY_THRESHOLD = 0.4  # Decision boundary for Match vs No-Match
 def sync_data():
     if not os.path.exists(LOCAL_DATA_DIR):
         os.makedirs(LOCAL_DATA_DIR)
-        print("🚀 Syncing data to Local SSD...")
+        print("Syncing data to Local SSD...")
         os.system(f'cp -r "{DRIVE_GEN_DIR}" "{LOCAL_GEN_DIR}"')
         os.system(f'cp -r "{DRIVE_FORG_DIR}" "{LOCAL_FORG_DIR}"')
-        print("✅ Data sync complete.")
+        print("Data sync complete.")
 
 class SignatureProcessor:
     """Removes background noise to focus only on handwriting geometry."""
@@ -130,7 +130,7 @@ def perform_full_analysis(model, loader, threshold):
 
     # Text Analysis
     print("\n" + "="*40)
-    print("📊 FINAL EVALUATION REPORT")
+    print("FINAL EVALUATION REPORT")
     print("="*40)
     print(f"Overall Accuracy: {accuracy_score(y_true, y_pred):.2%}")
     print("\nDetailed Metrics:")
@@ -182,7 +182,7 @@ def main():
     criterion = DistanceLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
-    print("🚀 Starting Training Phase...")
+    print(" Starting Training Phase...")
     for epoch in range(EPOCHS):
         model.train()
         total_loss = 0
@@ -201,7 +201,7 @@ def main():
     
     # Save for later use in Inference
     torch.save(model.state_dict(), FINAL_MODEL_SAVE_PATH)
-    print(f"\n✅ SYSTEM READY. Model saved to: {FINAL_MODEL_SAVE_PATH}")
+    print(f"\nSYSTEM READY. Model saved to: {FINAL_MODEL_SAVE_PATH}")
 
 if __name__ == "__main__":
     main()
