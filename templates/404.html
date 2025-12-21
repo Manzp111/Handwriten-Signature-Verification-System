@@ -1,0 +1,136 @@
+
+<style>
+    .error-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 80vh;
+    }
+
+    .error-card {
+        background: #161625; /* Matches your sidebar-panel */
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 3.5rem 2rem;
+        border-radius: 24px;
+        text-align: center;
+        max-width: 480px;
+        width: 100%;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 16px;
+        background: rgba(245, 158, 11, 0.1); /* Amber/Warning */
+        color: #f59e0b;
+        border-radius: 100px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-bottom: 1.5rem;
+        border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+
+    .error-code {
+        font-size: 5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #a855f7, #6366f1);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        line-height: 1;
+        margin-bottom: 1.5rem;
+        letter-spacing: -3px;
+    }
+
+    .error-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 0.75rem;
+    }
+
+    .error-message {
+        color: #94a3b8;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin-bottom: 2.5rem;
+    }
+
+    .action-group {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .btn-primary {
+        background: #a855f7;
+        color: #fff;
+        padding: 14px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
+    }
+
+    .btn-primary:hover {
+        background: #9333ea;
+        transform: translateY(-2px);
+    }
+
+    .btn-outline {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #94a3b8;
+        padding: 12px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: 0.2s;
+    }
+
+    .btn-outline:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: #fff;
+    }
+
+    /* Subtle "Glitch" icon effect */
+    .icon-box {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: #a855f7;
+        filter: drop-shadow(0 0 10px rgba(168, 85, 247, 0.3));
+    }
+</style>
+
+<div class="error-wrapper">
+    <div class="error-card">
+        <div class="icon-box">
+            <i class="fas fa-microchip"></i>
+        </div>
+        
+        <span class="status-badge">
+            <i class="fas fa-sync-alt"></i> Request Error
+        </span>
+        
+        <h1 class="error-code">400</h1>
+        
+        <h2 class="error-title">Bad Request</h2>
+        
+        <p class="error-message">
+            The server could not process your request due to invalid syntax. 
+            This usually happens when data is corrupted during transmission.
+        </p>
+
+        <div class="action-group">
+            <a href="{% url 'dashboard' %}" class="btn-primary">
+                Return to Home
+            </a>
+            <a href="javascript:location.reload();" class="btn-outline">
+                <i class="fas fa-redo"></i> Refresh Page
+            </a>
+        </div>
+    </div>
+</div>

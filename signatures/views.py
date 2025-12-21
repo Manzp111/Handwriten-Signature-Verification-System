@@ -14,7 +14,7 @@ from machine_pipeline.ml_pipeline import SiameseSignatureML
 # 1. INITIALIZATION
 
 # MODEL_PATH = settings.BASE_DIR / 'machine_pipeline/v2/signature_model.pth'
-MODEL_PATH = settings.BASE_DIR / 'machine_pipeline' / 'models' / 'signature_model.pth'
+MODEL_PATH = settings.BASE_DIR / 'training' / 'signature_model.pth'
 ml_model = SiameseSignatureML(model_path=str(MODEL_PATH))
 
 
@@ -24,7 +24,7 @@ ml_model = SiameseSignatureML(model_path=str(MODEL_PATH))
 def dashboard(request):
     # # Fetch the user's reference signatures to show on the dashboard
     # user_refs = Signature.objects.filter(user=request.user)
-    return render(request, 'base/base.html')
+    return render(request, 'base/home.html')
 
 
 # 3. REGISTRATION (The 3-Signature Upload)

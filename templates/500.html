@@ -1,0 +1,166 @@
+{% extends "base/base.html" %}
+
+{% block title %}500 - Server Error{% endblock %}
+
+{% block extra_css %}
+<style>
+    .error-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 80vh;
+    }
+
+    .error-card {
+        background: #161625; /* Matches sidebar-panel */
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 4rem 2rem;
+        border-radius: 24px;
+        text-align: center;
+        max-width: 500px;
+        width: 100%;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Subtle glowing pulse effect behind the icon */
+    .error-card::before {
+        content: '';
+        position: absolute;
+        top: -50px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(239, 68, 68, 0.15) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 16px;
+        background: rgba(239, 68, 68, 0.1); /* Red/Critical */
+        color: #ef4444;
+        border-radius: 100px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-bottom: 1.5rem;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .error-code {
+        font-size: 6rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #ef4444, #a855f7);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        line-height: 1;
+        margin-bottom: 1rem;
+        letter-spacing: -4px;
+    }
+
+    .error-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 1rem;
+    }
+
+    .error-message {
+        color: #94a3b8;
+        font-size: 1rem;
+        line-height: 1.6;
+        margin-bottom: 2.5rem;
+    }
+
+    .action-group {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .btn-primary {
+        background: #a855f7;
+        color: #fff;
+        padding: 14px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .btn-primary:hover {
+        background: #9333ea;
+        transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #94a3b8;
+        padding: 12px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: 0.2s;
+    }
+
+    .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
+    }
+
+    .icon-box {
+        font-size: 3.5rem;
+        margin-bottom: 1.5rem;
+        color: #ef4444;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); opacity: 0.8; }
+        50% { transform: scale(1.05); opacity: 1; }
+        100% { transform: scale(1); opacity: 0.8; }
+    }
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="error-wrapper">
+    <div class="error-card">
+        <div class="icon-box">
+            <i class="fas fa-server"></i>
+        </div>
+        
+        <span class="status-badge">
+            <i class="fas fa-exclamation-circle"></i> System Failure
+        </span>
+        
+        <h1 class="error-code">500</h1>
+        
+        <h2 class="error-title">Internal Server Error</h2>
+        
+        <p class="error-message">
+            Our neural engines encountered an unexpected glitch. We've been notified and our team is investigating the issue.
+        </p>
+
+        <div class="action-group">
+            <a href="{% url 'dashboard' %}" class="btn-primary">
+                <i class="fas fa-home"></i> Back to Safety
+            </a>
+            <a href="mailto:support@signasure.com" class="btn-secondary">
+                Report Issue
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

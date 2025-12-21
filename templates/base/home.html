@@ -1,0 +1,167 @@
+{% extends "base/base.html" %}
+
+{% block title %}SignaSure | Home{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* --- HERO SECTION --- */
+    .hero-banner {
+        background: linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, transparent 100%);
+        border: 1px solid rgba(168, 85, 247, 0.2);
+        border-radius: 24px;
+        padding: 40px;
+        margin-bottom: 32px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-banner h1 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 12px;
+        background: linear-gradient(to right, #fff, #a855f7);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .hero-banner p {
+        color: #94a3b8;
+        max-width: 600px;
+        line-height: 1.6;
+    }
+
+    /* --- STATS GRID --- */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 24px;
+        margin-bottom: 40px;
+    }
+
+    .stat-card {
+        background: #161625;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 24px;
+        border-radius: 20px;
+        transition: transform 0.3s ease;
+    }
+
+    .stat-card:hover { transform: translateY(-5px); }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 16px;
+        font-size: 1.2rem;
+    }
+
+    .icon-purple { background: rgba(168, 85, 247, 0.1); color: #a855f7; }
+    .icon-blue { background: rgba(99, 102, 241, 0.1); color: #6366f1; }
+    .icon-green { background: rgba(34, 197, 94, 0.1); color: #22c55e; }
+
+    .stat-value { font-size: 1.8rem; font-weight: 700; margin-bottom: 4px; }
+    .stat-label { color: #64748b; font-size: 0.9rem; font-weight: 500; }
+
+    /* --- PIPELINE SECTION --- */
+    .section-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .pipeline-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+    }
+
+    .pipeline-step {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px dashed rgba(255, 255, 255, 0.1);
+        padding: 30px;
+        border-radius: 20px;
+        position: relative;
+    }
+
+    .step-number {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        font-size: 3rem;
+        font-weight: 900;
+        color: rgba(255, 255, 255, 0.03);
+    }
+
+    .pipeline-step h3 { margin-bottom: 12px; font-size: 1.1rem; color: #a855f7; }
+    .pipeline-step p { font-size: 0.9rem; color: #94a3b8; line-height: 1.5; }
+
+    .btn-primary-home {
+        background: #a855f7;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-block;
+        margin-top: 20px;
+        transition: 0.3s;
+    }
+
+    .btn-primary-home:hover { background: #9333ea; box-shadow: 0 0 20px rgba(168, 85, 247, 0.4); }
+</style>
+{% endblock %}
+
+{% block main %}
+    <section class="hero-banner">
+        <h1>Welcome back, {{ request.user.full_name }}</h1>
+        <!-- <p>Your AI-powered signature verification engine is active. Ensure security in banking and identification systems with 99.2% model accuracy.</p>
+        <a href="{% url 'verify_signature' %}" class="btn-primary-home">
+            <i class="fas fa-shield-alt"></i> Run New Verification
+        </a> -->
+    </section>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon icon-purple"><i class="fas fa-file-signature"></i></div>
+            <div class="stat-value">124</div>
+            <div class="stat-label">Total Verifications</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon icon-blue"><i class="fas fa-microchip"></i></div>
+            <div class="stat-value">0.85</div>
+            <div class="stat-label">Avg. Distance Score</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon icon-green"><i class="fas fa-check-circle"></i></div>
+            <div class="stat-value">98%</div>
+            <div class="stat-label">Accuracy Rate</div>
+        </div>
+    </div>
+
+    <h2 class="section-title"><i class="fas fa-project-diagram"></i> Signature Analysis Pipeline</h2>
+    
+    <div class="pipeline-container">
+        <div class="pipeline-step">
+            <span class="step-number">01</span>
+            <h3>Preprocessing</h3>
+            <p>Images are binarized and resized to 224x224. Noise is removed using Gaussian blurring and contrast stretching to highlight the ink stroke geometry.</p>
+        </div>
+        <div class="pipeline-step">
+            <span class="step-number">02</span>
+            <h3>Feature Extraction</h3>
+            <p>Our ResNet-18 backbone extracts a 128-D embedding vector, capturing local stroke directions and global pressure patterns.</p>
+        </div>
+        <div class="pipeline-step">
+            <span class="step-number">03</span>
+            <h3>Classification</h3>
+            <p>Siamese Network logic calculates the Euclidean distance between the live sample and your 3 master reference signatures.</p>
+        </div>
+    </div>
+{% endblock %}
